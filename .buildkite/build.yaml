@@ -1,0 +1,25 @@
+---
+env:
+  GCP_REGISTRY: australia-southeast1-docker.pkg.dev/lp-global-artifacts-ops
+  REPO_NAME: data
+
+steps:
+  - name: ":docker: Build & push image :gcloud:"
+    command:
+      - cd $IMAGE_NAME
+      - docker build -t $IMAGE_NAME:latest .
+      - gcloud --quiet auth configure-docker australia-southeast1-docker.pkg.dev
+      - SHORT_COMMIT=$(echo $$BUILDKITE_COMMIT | cut -c1-8)
+      - docker tag $IMAGE_NAME:latest $$GCP_REGISTRY/$$REPO_NAME/$IMAGE_NAME:$$SHORT_COMMIT
+      - docker tag $IMAGE_NAME:latest $$GCP_REGISTRY/$$REPO_NAME/$IMAGE_NAME:$$BUILDKITE_BUILD_NUMBER
+      - docker tag $IMAGE_NAME:latest $$GCP_REGISTRY/$$REPO_NAME/$IMAGE_NAME:latest
+      - docker push $$GCP_REGISTRY/$$REPO_NAME/$IMAGE_NAME:$$SHORT_COMMIT
+      - docker push $$GCP_REGISTRY/$$REPO_NAME/$IMAGE_NAME:$$BUILDKITE_BUILD_NUMBER
+      - docker push $$GCP_REGISTRY/$$REPO_NAME/$IMAGE_NAME:latest
+      - docker rmi $IMAGE_NAME:latest
+      - docker rmi $$GCP_REGISTRY/$$REPO_NAME/$IMAGE_NAME:$$SHORT_COMMIT
+      - docker rmi $$GCP_REGISTRY/$$REPO_NAME/$IMAGE_NAME:$$BUILDKITE_BUILD_NUMBER
+      - docker rmi $$GCP_REGISTRY/$$REPO_NAME/$IMAGE_NAME:latest
+    retry:
+      manual:
+        permit_on_passed: true

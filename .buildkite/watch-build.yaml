@@ -1,0 +1,22 @@
+---
+steps:
+  - name: ":buildkite: Build path"
+    plugins:
+      - chronotc/monorepo-diff#v2.3.0:
+          diff: "git diff --name-only HEAD~1"
+          watch:
+            - path: "cko-payouts/"
+              config:
+                command: "buildkite-agent pipeline upload .buildkite/build.yaml"
+                env:
+                  - IMAGE_NAME=cko-payouts
+            - path: "forex/"
+              config:
+                command: "buildkite-agent pipeline upload .buildkite/build.yaml"
+                env:
+                  - IMAGE_NAME=forex
+            - path: "stripe-report/"
+              config:
+                command: "buildkite-agent pipeline upload .buildkite/build.yaml"
+                env:
+                  - IMAGE_NAME=stripe-report
